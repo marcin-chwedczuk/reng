@@ -8,7 +8,7 @@ import java.util.List;
 public class RParser {
     public static RAst parse(String s) {
         List<RToken> tokens = new RLexer(s).split();
-        RParser parser =  new RParser(tokens);
+        RParser parser = new RParser(tokens);
         return parser.parse();
     }
 
@@ -20,10 +20,10 @@ public class RParser {
     }
 
     private void expectCurrToken(RTokenType type) {
-        if(currToken().type != type) {
+        if (currToken().type != type) {
             throw new RParseException(currToken().pos,
-                "Unexpected input: expected " + type +
-                        "got " + currToken().type + ".");
+                    "Unexpected input: expected " + type +
+                            " got " + currToken().type + ".");
         }
     }
 
@@ -38,7 +38,7 @@ public class RParser {
         RToken t = consume(RTokenType.CHARACTER);
         if (t.c != c) {
             throw new RParseException(t.pos,
-                "Expected '" + c + "' but got '" + t.c + "'.");
+                    "Expected '" + c + "' but got '" + t.c + "'.");
         }
     }
 
@@ -53,8 +53,7 @@ public class RParser {
 
     private boolean consumeIfPresent(char c) {
         if (currToken().type == RTokenType.CHARACTER &&
-            currToken().c == c)
-        {
+                currToken().c == c) {
             consume(RTokenType.CHARACTER);
             return true;
         }
@@ -106,7 +105,9 @@ public class RParser {
             alternatives.add(Gconcat());
         }
 
-        return RAst.alternative(alternatives.toArray(new RAst[0]));
+        return alternatives.size() == 1
+                ? alternatives.get(0)
+                : RAst.alternative(alternatives.toArray(new RAst[0]));
     }
 
     private RAst Gconcat() {
@@ -120,32 +121,30 @@ public class RParser {
             exprs.add(Gmultiplicative());
         }
 
-        return RAst.concat(exprs.toArray(new RAst[0]));
+        return exprs.size() == 1
+                ? exprs.get(0)
+                : RAst.concat(exprs.toArray(new RAst[0]));
     }
 
     private RAst Gmultiplicative() {
         RAst term = Gterm();
 
-        while(lookahead(0, RTokenType.STAR) ||
-            lookahead(0, RTokenType.PLUS)   ||
-            lookahead(0, RTokenType.QMARK)  ||
-            lookahead(0, RTokenType.LRANGE))
-        {
+        while (lookahead(0, RTokenType.STAR) ||
+                lookahead(0, RTokenType.PLUS) ||
+                lookahead(0, RTokenType.QMARK) ||
+                lookahead(0, RTokenType.LRANGE)) {
             if (lookahead(0, RTokenType.STAR)) {
                 consume(RTokenType.STAR);
                 term = RAst.star(term);
-            }
-            else if (lookahead(0, RTokenType.PLUS)) {
+            } else if (lookahead(0, RTokenType.PLUS)) {
                 consume(RTokenType.PLUS);
                 // a+ = aa*
                 term = RAst.concat(term, RAst.star(term));
-            }
-            else if (lookahead(0, RTokenType.QMARK)) {
+            } else if (lookahead(0, RTokenType.QMARK)) {
                 // a? = (a | )
                 // TODO: Move to generic range RAst.repeat(from: 1, to: Inf, r)
                 throw new RuntimeException("Currently not supported");
-            }
-            else {
+            } else {
                 // TODO: Implement ranges - Grange - should return tuple
                 // (from, to) - both long's.
                 throw new RuntimeException("Currently not supported");
@@ -166,24 +165,19 @@ public class RParser {
         if (lookahead(0, RTokenType.AT_BEGINNING)) {
             consume(RTokenType.AT_BEGINNING);
             return RAst.atBeginning();
-        }
-        else if (lookahead(0, RTokenType.AT_END)) {
+        } else if (lookahead(0, RTokenType.AT_END)) {
             consume(RTokenType.AT_END);
             return RAst.atEnd();
-        }
-        else if (lookahead(0, RTokenType.LGROUP)) {
+        } else if (lookahead(0, RTokenType.LGROUP)) {
             return Ggroup();
-        }
-        else if (lookahead(0, RTokenType.CHARACTER)) {
+        } else if (lookahead(0, RTokenType.CHARACTER)) {
             return RAst.group(Gchar());
-        }
-        else if (lookahead(0, RTokenType.LPAREN)) {
+        } else if (lookahead(0, RTokenType.LPAREN)) {
             consume(RTokenType.LPAREN);
             RAst tmp = Gregex();
             consume(RTokenType.RPAREN);
             return tmp;
-        }
-        else {
+        } else {
             throw new RParseException(currToken().pos,
                     "Unexpected token " + currToken().type + ".");
         }
@@ -192,7 +186,7 @@ public class RParser {
     private RAst Ggroup() {
         consume(RTokenType.LGROUP);
 
-        boolean negated = consumeIfPresent('^');
+        boolean negated = consumeIfPresent(RTokenType.AT_BEGINNING);
         CharList chars = new CharList();
 
         while (true) {
@@ -202,23 +196,22 @@ public class RParser {
             }
 
             if (lookahead(0, RTokenType.RGROUP)) {
-               if (chars.size() == 0) {
-                   throw new RParseException(currToken().pos,
-                           "Empty groups are not supported, " +
-                           "use non empty group like '[abc]'.");
-               }
+                consume(RTokenType.RGROUP);
+                if (chars.size() == 0) {
+                    throw new RParseException(currToken().pos,
+                            "Empty groups are not supported, " +
+                                    "use non empty group like '[abc]'.");
+                }
 
-               return negated
-                       ? RAst.invGroup(chars.toArray())
-                       : RAst.group(chars.toArray());
-            }
-            else if (lookahead(0, RTokenType.CHARACTER) &&
-                lookahead(1, '-') &&
-                lookahead(2, RTokenType.CHARACTER)) {
+                return negated
+                        ? RAst.invGroup(chars.toArray())
+                        : RAst.group(chars.toArray());
+            } else if (lookahead(0, RTokenType.CHARACTER) &&
+                    lookahead(1, '-') &&
+                    lookahead(2, RTokenType.CHARACTER)) {
 
                 chars.addAll(Grange());
-            }
-            else {
+            } else {
                 chars.add(Gchar());
             }
         }
@@ -236,7 +229,7 @@ public class RParser {
         char[] chars = new char[tTo.c - tFrom.c + 1];
 
         for (int c = tFrom.c; c <= tTo.c; c++) {
-            chars[c - tFrom.c] = (char)c;
+            chars[c - tFrom.c] = (char) c;
         }
 
         return chars;
