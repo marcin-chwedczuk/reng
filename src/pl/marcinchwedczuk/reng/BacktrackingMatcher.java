@@ -2,19 +2,32 @@ package pl.marcinchwedczuk.reng;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("SimplifiableConditionalExpression")
 public class BacktrackingMatcher {
-    public static boolean match(Input input, RAst regex) {
-        AtomicBoolean b = new AtomicBoolean(false);
+    public static Match match(String s, RAst regex) {
+        Input input = Input.of(s);
 
-        //TODO: Implement matching start from indexes other than 0
-        match(input, regex, () -> {
-            b.set(true);
-            return true;
-        });
+        while (true) {
+            int startIndex = input.currentPos();
+            AtomicInteger endIndex = new AtomicInteger(0);
 
-        return b.get();
+            boolean hasMatch = match(input, regex, () -> {
+                endIndex.set(input.currentPos());
+                return true;
+            });
+
+            if (hasMatch) {
+                return new Match(s, hasMatch, startIndex, endIndex.get());
+            }
+
+            // We checked empty string - no match
+            if (input.atEnd()) return new Match(s, hasMatch, -1, -1);
+
+            // Try to match from next index
+            input.advance(1);
+        }
     }
 
     public static boolean match(Input input, RAst regex, Cont cont) {

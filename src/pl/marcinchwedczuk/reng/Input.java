@@ -12,6 +12,10 @@ public class Input {
         pos = 0;
     }
 
+    public int currentPos() {
+        return pos;
+    }
+
     public boolean atBeginning() {
         return pos == 0;
     }

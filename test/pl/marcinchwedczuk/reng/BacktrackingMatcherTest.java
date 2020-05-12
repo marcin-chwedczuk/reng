@@ -37,7 +37,7 @@ public class BacktrackingMatcherTest {
         RAst rAtEnd = RAst.atEnd();
 
         assertMatches("", rAtEnd);
-        assertNotMatches("a", rAtEnd);
+        assertMatches("a", rAtEnd);
     }
 
     @Test public void match_concat() {
@@ -85,22 +85,18 @@ public class BacktrackingMatcherTest {
     }
 
     private static void assertMatches(String input, RAst regex) {
-        boolean m = BacktrackingMatcher.match(
-                Input.of(input),
-                regex);
+        Match m = BacktrackingMatcher.match(input, regex);
 
         assertTrue(
             "Regex " + regex + " should match '" + input + "'.",
-            m);
+            m.hasMatch);
     }
 
     private static void assertNotMatches(String input, RAst regex) {
-        boolean m = BacktrackingMatcher.match(
-                Input.of(input),
-                regex);
+        Match m = BacktrackingMatcher.match(input, regex);
 
         assertFalse(
                 "Regex " + regex + " should NOT match '" + input + "'.",
-                m);
+                m.hasMatch);
     }
 }
