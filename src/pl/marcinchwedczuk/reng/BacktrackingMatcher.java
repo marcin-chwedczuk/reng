@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@SuppressWarnings("SimplifiableConditionalExpression")
 public class BacktrackingMatcher {
     public static Match match(String s, RAst regex) {
         Input input = Input.of(s);
@@ -30,6 +29,7 @@ public class BacktrackingMatcher {
         }
     }
 
+    @SuppressWarnings("SimplifiableConditionalExpression")
     public static boolean match(Input input, RAst regex, Cont cont) {
         RAstType type = regex.type;
         InputMarker m = null;
