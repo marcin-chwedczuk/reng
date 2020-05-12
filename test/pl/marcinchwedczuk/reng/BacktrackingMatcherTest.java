@@ -84,6 +84,79 @@ public class BacktrackingMatcherTest {
         assertMatches("x", rAStar);
     }
 
+    @Test public void match_anchors() {
+        // regex: ^abc$
+        RAst rAbcAlone = RAst.concat(
+                RAst.atBeginning(),
+                RAst.literal("abc"),
+                RAst.atEnd());
+
+        assertMatches("abc", rAbcAlone);
+
+        assertNotMatches("abcx", rAbcAlone);
+        assertNotMatches("xabc", rAbcAlone);
+        assertNotMatches("ac", rAbcAlone);
+    }
+
+    @Test public void match_within_input() {
+        RAst rA = RAst.group('a');
+
+        assertMatches("axxx", rA);
+        assertMatches("xxxa", rA);
+        assertMatches("xaxx", rA);
+        assertMatches("xxax", rA);
+    }
+
+    @Test
+    public void match_star_with_alternative() {
+        // regex: ^(A|B)*$
+        RAst rABs = RAst.fullMatch(
+            RAst.star(
+                RAst.alternative(
+                        RAst.group('A'),
+                        RAst.group('B'))));
+
+        assertMatches("", rABs);
+        assertMatches("AA", rABs);
+        assertMatches("ABAB", rABs);
+        assertMatches("ABABA", rABs);
+
+        assertNotMatches("x", rABs);
+        assertNotMatches("AxA", rABs);
+    }
+
+    @Test public void match_star_with_concatenation() {
+        // Regex: ^(foo)*$
+        RAst rFooStar = RAst.fullMatch(
+                RAst.star(RAst.literal("foo")));
+
+        assertMatches("", rFooStar);
+        assertMatches("foo", rFooStar);
+        assertMatches("foofoo", rFooStar);
+
+        assertNotMatches("fo", rFooStar);
+        assertNotMatches("foofox", rFooStar);
+    }
+
+    @Test public void match_alternative_with_concatenation() {
+        // Regex: ^a(foo|bar)z$
+        RAst rFooStar = RAst.fullMatch(
+                RAst.concat(
+                        RAst.group('a'),
+                        RAst.alternative(
+                                RAst.literal("foo"), RAst.literal("bar")),
+                        RAst.group('z')));
+
+        assertMatches("afooz", rFooStar);
+        assertMatches("abarz", rFooStar);
+
+        assertNotMatches("", rFooStar);
+        assertNotMatches("az", rFooStar);
+        assertNotMatches("afoo", rFooStar);
+        assertNotMatches("fooz", rFooStar);
+        assertNotMatches("afoobarz", rFooStar);
+    }
+
     private static void assertMatches(String input, RAst regex) {
         Match m = BacktrackingMatcher.match(input, regex);
 

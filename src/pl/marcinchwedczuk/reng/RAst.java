@@ -103,6 +103,14 @@ public class RAst {
                 Arrays.stream(exprs).collect(toList()));
     }
 
+    public static RAst literal(String s) {
+        RAst[] chars = s.chars()
+                .mapToObj(c -> RAst.group((char) c))
+                .toArray(RAst[]::new);
+
+        return RAst.concat(chars);
+    }
+
     public static RAst alternative(RAst... expr) {
         return new RAst(
                 RAstType.ALTERNATIVE,
@@ -129,6 +137,13 @@ public class RAst {
                 RAstType.AT_END,
                 emptySet(),
                 emptyList());
+    }
+
+    public static RAst fullMatch(RAst r) {
+        return RAst.concat(
+                atBeginning(),
+                r,
+                atEnd());
     }
 
     private static Set<Character> toSet(char[] chars) {
