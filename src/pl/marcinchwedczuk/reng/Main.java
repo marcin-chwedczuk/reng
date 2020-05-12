@@ -1,6 +1,9 @@
 package pl.marcinchwedczuk.reng;
 
 public class Main {
+    // Global TODO:
+    // - Forgot about `.` operator
+
     public static void main(String[] args) {
         // Regex: B(0|1)*E
 
