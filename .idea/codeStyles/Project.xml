@@ -1,0 +1,10 @@
+<component name="ProjectCodeStyleConfiguration">
+  <code_scheme name="Project" version="173">
+    <ScalaCodeStyleSettings>
+      <option name="SCALAFMT_CONFIG_PATH" value="$USER_HOME$/scalafmt.conf" />
+    </ScalaCodeStyleSettings>
+    <codeStyleSettings language="Scala">
+      <option name="SOFT_MARGINS" value="100" />
+    </codeStyleSettings>
+  </code_scheme>
+</component>
