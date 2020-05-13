@@ -1,11 +1,9 @@
 package pl.marcinchwedczuk.reng;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 
 public class RAst {
 
@@ -13,10 +11,36 @@ public class RAst {
     public final Set<Character> chars;
     public final List<RAst> exprs;
 
-    private RAst(RAstType type, Set<Character> chars, List<RAst> exprs) {
+    // Repeat from to, both inclusive
+    public final long repeatMin;
+    public final long repeatMax;
+
+    public RAst(RAstType type,
+                Set<Character> chars,
+                List<RAst> exprs,
+                long repeatMin,
+                long repeatMax) {
         this.type = type;
         this.chars = chars;
         this.exprs = exprs;
+        this.repeatMin = repeatMin;
+        this.repeatMax = repeatMax;
+    }
+
+    public RAst(RAstType type,
+                 Set<Character> chars) {
+        this(type,
+             chars,
+             Collections.emptyList(),
+             -1, -1);
+    }
+
+    public RAst(RAstType type,
+                 List<RAst> exprs) {
+        this(type,
+             Collections.emptySet(),
+             exprs,
+             -1, -1);
     }
 
     public RAst headExpr() {
@@ -51,8 +75,8 @@ public class RAst {
                         .collect(joining("", "[^", "]"));
                 break;
 
-            case STAR:
-                tmp = headExpr().toString(RAstType.STAR.priority) + "*";
+            case REPEAT:
+                tmp = headExpr().toString(RAstType.REPEAT.priority) + "*";
                 break;
 
             case CONCAT:
@@ -84,23 +108,18 @@ public class RAst {
 
     public static RAst group(char... chars) {
         return new RAst(
-                RAstType.GROUP,
-                toSet(chars),
-                emptyList());
+            RAstType.GROUP, toSet(chars));
     }
 
     public static RAst invGroup(char... chars) {
         return new RAst(
-                RAstType.INVERTED_GROUP,
-                toSet(chars),
-                emptyList());
+            RAstType.INVERTED_GROUP, toSet(chars));
     }
 
     public static RAst concat(RAst... exprs) {
         return new RAst(
-                RAstType.CONCAT,
-                emptySet(),
-                Arrays.stream(exprs).collect(toList()));
+            RAstType.CONCAT,
+            Arrays.asList(exprs));
     }
 
     public static RAst literal(String s) {
@@ -113,30 +132,36 @@ public class RAst {
 
     public static RAst alternative(RAst... expr) {
         return new RAst(
-                RAstType.ALTERNATIVE,
-                emptySet(),
-                Arrays.stream(expr).collect(toList()));
+            RAstType.ALTERNATIVE,
+            Arrays.asList(expr));
     }
 
     public static RAst star(RAst expr) {
+        return repeat(expr, 0, Long.MAX_VALUE);
+    }
+
+    public static RAst repeat(RAst expr, long min, long max) {
         return new RAst(
-                RAstType.STAR,
+                RAstType.REPEAT,
                 emptySet(),
-                singletonList(expr));
+                singletonList(expr),
+                min, max);
     }
 
     public static RAst atBeginning() {
         return new RAst(
                 RAstType.AT_BEGINNING,
                 emptySet(),
-                emptyList());
+                emptyList(),
+                -1, -1);
     }
 
     public static RAst atEnd() {
         return new RAst(
                 RAstType.AT_END,
                 emptySet(),
-                emptyList());
+                emptyList(),
+                -1, -1);
     }
 
     public static RAst fullMatch(RAst r) {

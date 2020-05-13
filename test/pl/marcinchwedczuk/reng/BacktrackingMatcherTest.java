@@ -157,6 +157,29 @@ public class BacktrackingMatcherTest {
         assertNotMatches("afoobarz", rFooStar);
     }
 
+    @Test public void match_repeat_with_min_and_max() {
+        // regex: ^a{1,3}$
+        RAst r = RAst.fullMatch(
+                RAst.repeat(RAst.group('a'), 1, 3));
+
+        assertMatches("a", r);
+        assertMatches("aa", r);
+        assertMatches("aaa", r);
+
+        assertNotMatches("", r);
+        assertNotMatches("aaaa", r);
+        assertNotMatches("aaaaaa", r);
+    }
+
+    @Test public void repeat_does_gready_match() {
+        String input = "aaaaab";
+        RAst r = RAst.repeat(RAst.group('a'), 1, 5);
+
+        Match m = BacktrackingMatcher.match(input, r);
+
+        Assert.assertEquals("aaaaa", m.matched());
+    }
+
     private static void assertMatches(String input, RAst regex) {
         Match m = BacktrackingMatcher.match(input, regex);
 

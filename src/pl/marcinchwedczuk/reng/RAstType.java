@@ -18,7 +18,7 @@ public enum RAstType {
     // Match single expression zero or more times.
     // Greedy by default.
     // Regex: R*
-    STAR(80),
+    REPEAT(80),
 
     // Match list of regexes one by one.
     // Regex: R_1 R_2 R_3

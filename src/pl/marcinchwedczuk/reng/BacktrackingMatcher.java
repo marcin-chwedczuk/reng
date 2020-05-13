@@ -1,9 +1,9 @@
 package pl.marcinchwedczuk.reng;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@SuppressWarnings("SimplifiableConditionalExpression")
 public class BacktrackingMatcher {
     public static Match match(String s, RAst regex) {
         Input input = Input.of(s);
@@ -30,8 +30,8 @@ public class BacktrackingMatcher {
     }
 
     @SuppressWarnings("SimplifiableConditionalExpression")
-    public static boolean match(Input input, RAst regex, Cont cont) {
-        RAstType type = regex.type;
+    public static boolean match(Input input, RAst ast, Cont cont) {
+        RAstType type = ast.type;
         InputMarker m = null;
 
         switch (type) {
@@ -48,7 +48,7 @@ public class BacktrackingMatcher {
             case GROUP:
                 // TODO: Handle empty groups
                 if (input.atEnd()) return false;
-                if (regex.chars.contains(input.current())) {
+                if (ast.chars.contains(input.current())) {
                     m = input.mark();
                     input.advance(1);
                     try {
@@ -61,7 +61,7 @@ public class BacktrackingMatcher {
 
             case INVERTED_GROUP:
                 if (input.atEnd()) return false;
-                if (!regex.chars.contains(input.current())) {
+                if (!ast.chars.contains(input.current())) {
                     m = input.mark();
                     input.advance(1);
                     try {
@@ -74,13 +74,13 @@ public class BacktrackingMatcher {
                 return false;
 
             case CONCAT:
-                return concatRec(input, regex.exprs, 0, cont);
+                return concatRec(input, ast.exprs, 0, cont);
 
             case ALTERNATIVE:
-                return alternativeRec(input, regex.exprs, 0, cont);
+                return alternativeRec(input, ast.exprs, 0, cont);
 
-            case STAR:
-                return starRec(input, regex.headExpr(), cont);
+            case REPEAT:
+                return repeatRec(input, ast, 0, cont);
 
             default: throw new AssertionError("Unknown enum value: " + type);
         }
@@ -99,14 +99,18 @@ public class BacktrackingMatcher {
         );
     }
 
-    private static boolean starRec(Input input,
-                                RAst r,
-                                Cont cont) {
-        boolean b = match(input, r, () ->
-            starRec(input, r, cont)
+    private static boolean repeatRec(Input input,
+                                     RAst repeatAst,
+                                     long matchCount,
+                                     Cont cont) {
+        if (matchCount > repeatAst.repeatMax)
+            return false;
+
+        boolean matched = match(input, repeatAst.headExpr(), () ->
+            repeatRec(input, repeatAst, matchCount+1, cont)
         );
 
-        if (!b) {
+        if (!matched && (matchCount >= repeatAst.repeatMin)) {
             // r{N} does not match.
             // Here  we are matching r{N-1}, we are sure it is matching
             // because this function was called.
@@ -114,7 +118,7 @@ public class BacktrackingMatcher {
         }
 
         // r{N} matched.
-        return b;
+        return matched;
     }
 
     private static boolean alternativeRec(Input input,
