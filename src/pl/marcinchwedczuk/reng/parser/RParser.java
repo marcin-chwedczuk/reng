@@ -212,7 +212,7 @@ public class RParser {
 
                 chars.addAll(Grange());
             } else {
-                chars.add(Gchar());
+                chars.add(GgroupChar());
             }
         }
     }
@@ -233,6 +233,16 @@ public class RParser {
         }
 
         return chars;
+    }
+
+    private char GgroupChar() {
+        // Inside [...] group many special characters like
+        // `.` loose their meaning. E.g. we can write `[.$^]`.
+
+        // EOF and `]` are handled at Ggroup level.
+
+        RToken t = consume(currToken().type);
+        return t.c;
     }
 
     private char Gchar() {

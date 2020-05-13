@@ -61,6 +61,10 @@ public class RLexer {
                     tokens.add(new RToken(RTokenType.ALTERNATIVE, '|', cPos));
                     break;
 
+                case '.':
+                    tokens.add(new RToken(RTokenType.MATCH_ANY, '.', cPos));
+                    break;
+
                 case '^':
                     tokens.add(new RToken(RTokenType.AT_BEGINNING, '^', cPos));
                     break;
@@ -88,11 +92,15 @@ public class RLexer {
                             tokens.add(new RToken(RTokenType.CHARACTER, '\r', cPos));
                             break;
 
+                        case '\\':
+                            tokens.add(new RToken(RTokenType.CHARACTER, '\\', cPos));
+                            break;
+
                         // Regex escapes
                         case '(': case ')':
                         case '[': case ']':
                         case '{': case '}':
-                        case '*': case '+': case '?': case '|':
+                        case '*': case '+': case '?': case '|': case '.':
                         case '^': case '$':
                             tokens.add(new RToken(RTokenType.CHARACTER, escape, cPos));
                             break;

@@ -13,6 +13,7 @@ public enum RTokenType {
     LRANGE,
     RRANGE,
 
+    MATCH_ANY,
     STAR,
     PLUS,
     QMARK,
