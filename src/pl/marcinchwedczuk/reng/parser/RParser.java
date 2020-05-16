@@ -132,26 +132,62 @@ public class RParser {
         while (lookahead(0, RTokenType.STAR) ||
                 lookahead(0, RTokenType.PLUS) ||
                 lookahead(0, RTokenType.QMARK) ||
-                lookahead(0, RTokenType.LRANGE)) {
+                lookahead(0, RTokenType.LRANGE))
+        {
             if (lookahead(0, RTokenType.STAR)) {
                 consume(RTokenType.STAR);
                 term = RAst.star(term);
             } else if (lookahead(0, RTokenType.PLUS)) {
                 consume(RTokenType.PLUS);
-                // a+ = aa*
-                term = RAst.concat(term, RAst.star(term));
+                term = RAst.repeat(term, 1, RAst.UNBOUND);
             } else if (lookahead(0, RTokenType.QMARK)) {
-                // a? = (a | )
-                // TODO: Move to generic range RAst.repeat(from: 1, to: Inf, r)
-                throw new RuntimeException("Currently not supported");
+                consume(RTokenType.QMARK);
+                term = RAst.repeat(term, 0, 1);
             } else {
-                // TODO: Implement ranges - Grange - should return tuple
-                // (from, to) - both long's.
-                throw new RuntimeException("Currently not supported");
+                term = Grange(term);
             }
         }
 
         return term;
+    }
+
+    private RAst Grange(RAst inner) {
+        // A{N,M} or A{N}
+        consume(RTokenType.LRANGE);
+
+        long repeatMin = Ginteger();
+        long repeatMax = repeatMin;
+        if (lookahead(0, ',')) {
+            consume(',');
+            repeatMax = Ginteger();
+        }
+        consume(RTokenType.RRANGE);
+
+        return RAst.repeat(inner, repeatMin, repeatMax);
+    }
+
+    private long Ginteger() {
+        int startPos = currToken().pos;
+        char c = currToken().c;
+        if (!Character.isDigit(c))
+            throw new RParseException(startPos,
+                    "Expected a digit but got '" + c + "'.");
+
+        consume(RTokenType.CHARACTER);
+        String number = Character.toString(c);
+
+        while (Character.isDigit(currToken().c)) {
+            number += currToken().c;
+            consume(RTokenType.CHARACTER);
+        }
+
+        try {
+            return Long.parseLong(number);
+        }
+        catch (Exception e) {
+            throw new RParseException(startPos,
+                    "Cannot convert " + number + " to integer.");
+        }
     }
 
     private RAst Gterm() {
@@ -210,14 +246,16 @@ public class RParser {
                     lookahead(1, '-') &&
                     lookahead(2, RTokenType.CHARACTER)) {
 
-                chars.addAll(Grange());
+                chars.addAll(GcharacterRange());
             } else {
-                chars.add(GgroupChar());
+                // Consume special characters like '.' or '^'
+                RToken t = consume(currToken().type);
+                chars.add(t.c);
             }
         }
     }
 
-    private char[] Grange() {
+    private char[] GcharacterRange() {
         // e.g. 0-9 inside [ ]
         RToken tFrom = consume(RTokenType.CHARACTER);
         consume('-');
@@ -233,16 +271,6 @@ public class RParser {
         }
 
         return chars;
-    }
-
-    private char GgroupChar() {
-        // Inside [...] group many special characters like
-        // `.` loose their meaning. E.g. we can write `[.$^]`.
-
-        // EOF and `]` are handled at Ggroup level.
-
-        RToken t = consume(currToken().type);
-        return t.c;
     }
 
     private char Gchar() {

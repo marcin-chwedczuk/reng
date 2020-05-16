@@ -6,6 +6,7 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 
 public class RAst {
+    public static final Long UNBOUND = Long.MAX_VALUE;
 
     public final RAstType type;
     public final Set<Character> chars;
@@ -64,6 +65,7 @@ public class RAst {
                 }
                 else {
                     tmp = chars.stream()
+                        .sorted()
                         .map(Object::toString)
                         .collect(joining("", "[", "]"));
                 }
@@ -71,12 +73,13 @@ public class RAst {
 
             case INVERTED_GROUP:
                 tmp = chars.stream()
+                        .sorted()
                         .map(Object::toString)
                         .collect(joining("", "[^", "]"));
                 break;
 
             case REPEAT:
-                tmp = headExpr().toString(RAstType.REPEAT.priority) + "*";
+                tmp = toStringRepeat();
                 break;
 
             case CONCAT:
@@ -98,11 +101,38 @@ public class RAst {
         }
 
         return (outsidePriority > type.priority)
-                ? addParents(tmp)
+                ? addParentheses(tmp)
                 : tmp;
     }
 
-    private static String addParents(String s) {
+    private String toStringRepeat() {
+        String inner = headExpr().toString(RAstType.REPEAT.priority);
+
+        if (repeatMin == 0 && repeatMax == UNBOUND) {
+            // A*
+            return inner + "*";
+        }
+        else if (repeatMin == 1 && repeatMax == UNBOUND) {
+            // A+
+            return inner + "+";
+        }
+        else if (repeatMin == 0 && repeatMax == 1) {
+            // A?
+            return inner + "?";
+        }
+        else if (repeatMin == repeatMax) {
+            // A{N}
+            return inner + "{" + repeatMin + "}";
+        }
+        else {
+            // A{N,M}
+            String minStr = Long.toString(repeatMin);
+            String maxStr = (repeatMax == UNBOUND) ? "" : Long.toString(repeatMax);
+            return inner + "{" + minStr + "," + maxStr + "}";
+        }
+    }
+
+    private static String addParentheses(String s) {
         return "(" + s + ")";
     }
 

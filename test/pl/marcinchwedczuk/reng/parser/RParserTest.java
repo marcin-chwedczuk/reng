@@ -30,6 +30,16 @@ public class RParserTest {
         assertEquals("[0123456789]", ast.toString());
     }
 
+    @Test public void special_characters_need_no_escape_in_group()  {
+        RAst ast = RParser.parse("[$().^]");
+        assertEquals("[$().^]", ast.toString());
+    }
+
+    @Test public void escape_sequences_are_supported_within_group() {
+        RAst ast = RParser.parse("[\\n\\.\\]]");
+        assertEquals("[\n.]]", ast.toString());
+    }
+
     @Test public void parse_negated_char_group() {
         RAst ast = RParser.parse("[^abc]");
         assertEquals("[^abc]", ast.toString());
@@ -71,10 +81,23 @@ public class RParserTest {
 
     @Test public void parse_plus() {
         RAst ast = RParser.parse("a+");
-        assertEquals("aa*", ast.toString());
+        assertEquals("a+", ast.toString());
     }
 
-    // TODO: Ranges {1,3} and ?
+    @Test public void parse_qmark() {
+        RAst ast = RParser.parse("a?");
+        assertEquals("a?", ast.toString());
+    }
+
+    @Test public void parse_range_single_bound() {
+        RAst ast = RParser.parse("a{5}");
+        assertEquals("a{5}", ast.toString());
+    }
+
+    @Test public void parse_range_double_bound() {
+        RAst ast = RParser.parse("a{2,5}");
+        assertEquals("a{2,5}", ast.toString());
+    }
 
     @Test public void parse_smoke() {
         RAst ast = RParser.parse("^(foo|bar)$");
