@@ -7,40 +7,50 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class BacktrackingMatcherTest {
-    @Test public void match_group() {
+    @Test public void matches_group() {
         RAst rAbc = RAst.group('a', 'b', 'c');
 
         assertMatches("a", rAbc);
+        assertMatches("b", rAbc);
+        assertMatches("c", rAbc);
         assertMatches("abc", rAbc);
 
-        assertNotMatches("x", rAbc);
+        assertNotMatches("", rAbc);
+        assertNotMatches("d", rAbc);
     }
 
-    @Test public void match_inverted_group() {
+    @Test public void matches_inverted_group() {
         RAst rNotAbc = RAst.invGroup('a', 'b', 'c');
 
-        assertNotMatches("a", rNotAbc);
-        assertNotMatches("abc", rNotAbc);
-
-        assertMatches("x", rNotAbc);
+        assertMatches("d", rNotAbc);
         assertMatches("xyz", rNotAbc);
+
+        assertNotMatches("", rNotAbc);
+        assertNotMatches("a", rNotAbc);
+        assertNotMatches("b", rNotAbc);
+        assertNotMatches("c", rNotAbc);
+        assertNotMatches("abc", rNotAbc);
     }
 
-    @Test public void match_at_begining() {
+    @Test public void matches_at_beginning() {
        RAst rAtBeginning = RAst.atBeginning();
 
+       // Every string has a beginning
        assertMatches("", rAtBeginning);
        assertMatches("a", rAtBeginning);
+        assertMatches("abc", rAtBeginning);
     }
 
-    @Test public void match_at_end() {
+    @Test public void matches_at_end() {
         RAst rAtEnd = RAst.atEnd();
 
+        // Every string has an ending
         assertMatches("", rAtEnd);
         assertMatches("a", rAtEnd);
+        assertMatches("abc", rAtEnd);
     }
 
-    @Test public void match_concat() {
+    @Test public void matches_concat() {
         RAst rAbc = RAst.concat(
                 RAst.group('a'),
                 RAst.group('b'),
@@ -49,15 +59,18 @@ public class BacktrackingMatcherTest {
 
         assertMatches("abc", rAbc);
         assertMatches("abcDef", rAbc);
+        assertMatches("XYZabc", rAbc);
+        assertMatches("+abc+", rAbc);
 
         assertNotMatches("", rAbc);
         assertNotMatches("a", rAbc);
         assertNotMatches("ab", rAbc);
         assertNotMatches("abx", rAbc);
         assertNotMatches("xbc", rAbc);
+        assertNotMatches("xxxxxxx", rAbc);
     }
 
-    @Test public void match_alternative() {
+    @Test public void matches_alternative() {
         RAst rAltAbc = RAst.alternative(
                 RAst.group('a'),
                 RAst.group('b'),
@@ -68,12 +81,14 @@ public class BacktrackingMatcherTest {
         assertMatches("b", rAltAbc);
         assertMatches("c", rAltAbc);
         assertMatches("axx", rAltAbc);
+        assertMatches("xbx", rAltAbc);
 
         assertNotMatches("", rAltAbc);
         assertNotMatches("x", rAltAbc);
+        assertNotMatches("xyz", rAltAbc);
     }
 
-    @Test public void match_star() {
+    @Test public void matches_star() {
         RAst rAStar = RAst.star(RAst.group('a'));
 
         assertMatches("", rAStar);
@@ -81,10 +96,38 @@ public class BacktrackingMatcherTest {
         assertMatches("aa", rAStar);
         assertMatches("aaa", rAStar);
         assertMatches("aaax", rAStar);
+
+        // Empty match
         assertMatches("x", rAStar);
+        assertMatches("xyz", rAStar);
     }
 
-    @Test public void match_anchors() {
+    @Test public void matches_plus() {
+        RAst rAStar = RAst.plus(RAst.group('a'));
+
+        assertMatches("a", rAStar);
+        assertMatches("aa", rAStar);
+        assertMatches("aaa", rAStar);
+        assertMatches("aaax", rAStar);
+
+        assertNotMatches("", rAStar);
+        assertNotMatches("x", rAStar);
+        assertNotMatches("xyz", rAStar);
+    }
+
+    @Test public void matches_repetition() {
+        RAst rA23 = RAst.repeat(RAst.group('a'), 2, 3);
+
+        assertNotMatches("", rA23);
+        assertNotMatches("a", rA23);
+        assertMatches("aa", rA23);
+        assertMatches("aaa", rA23);
+
+        // Matches a substring aaa
+        assertMatches("aaaa", rA23);
+    }
+
+    @Test public void matches_anchors() {
         // regex: ^abc$
         RAst rAbcAlone = RAst.concat(
                 RAst.atBeginning(),
@@ -93,18 +136,10 @@ public class BacktrackingMatcherTest {
 
         assertMatches("abc", rAbcAlone);
 
+        assertNotMatches("", rAbcAlone);
         assertNotMatches("abcx", rAbcAlone);
         assertNotMatches("xabc", rAbcAlone);
-        assertNotMatches("ac", rAbcAlone);
-    }
-
-    @Test public void match_within_input() {
-        RAst rA = RAst.group('a');
-
-        assertMatches("axxx", rA);
-        assertMatches("xxxa", rA);
-        assertMatches("xaxx", rA);
-        assertMatches("xxax", rA);
+        assertNotMatches("xabcx", rAbcAlone);
     }
 
     @Test
