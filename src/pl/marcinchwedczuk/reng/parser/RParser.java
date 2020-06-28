@@ -98,11 +98,11 @@ public class RParser {
     private RAst Galternative() {
         List<RAst> alternatives = new ArrayList<>();
 
-        alternatives.add(Gconcat());
+        alternatives.add(Gconcatenation());
 
         while (lookahead(0, RTokenType.ALTERNATIVE)) {
             consume(RTokenType.ALTERNATIVE);
-            alternatives.add(Gconcat());
+            alternatives.add(Gconcatenation());
         }
 
         return alternatives.size() == 1
@@ -110,15 +110,15 @@ public class RParser {
                 : RAst.alternative(alternatives.toArray(new RAst[0]));
     }
 
-    private RAst Gconcat() {
+    private RAst Gconcatenation() {
         List<RAst> exprs = new ArrayList<>();
 
-        exprs.add(Grepeat());
+        exprs.add(Grepetition());
 
         while (!lookahead(0, RTokenType.ALTERNATIVE) &&
                 !lookahead(0, RTokenType.RPAREN) &&
                 !lookahead(0, RTokenType.EOF)) {
-            exprs.add(Grepeat());
+            exprs.add(Grepetition());
         }
 
         return exprs.size() == 1
@@ -126,7 +126,7 @@ public class RParser {
                 : RAst.concat(exprs.toArray(new RAst[0]));
     }
 
-    private RAst Grepeat() {
+    private RAst Grepetition() {
         RAst term = Gterm();
 
         while (lookahead(0, RTokenType.STAR) ||
@@ -145,14 +145,14 @@ public class RParser {
                 term = RAst.repeat(term, 0, 1);
             } else {
                 // Parse repeat range e.g. '{1,2}' or '{3}'
-                term = Grange(term);
+                term = GrepetitionMinMax(term);
             }
         }
 
         return term;
     }
 
-    private RAst Grange(RAst inner) {
+    private RAst GrepetitionMinMax(RAst inner) {
         // A{N,M} or A{N}
         consume(RTokenType.LRANGE);
 

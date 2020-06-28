@@ -1,0 +1,24 @@
+// You can view this on: https://www.bottlecaps.de/rr/ui
+
+regex ::= alternative
+
+alternative ::= concatenation ('|' concatenation)*
+
+concatenation ::= repetition repetition*
+
+repetition ::= term ('*' | '+' | '?' | repetitionMinMax)*
+
+repetitionMinMax ::= '{' INTEGER (',' INTEGER)? '}'
+
+term ::= '^' | '$' | '.' | CHAR | group | '(' regex ')'
+
+group ::= '[' '^'? (characterRange | CHAR)+ ']'
+
+characterRange ::= CHAR '-' CHAR
+
+<?TOKENS?>
+
+CHAR ::= [^(){}^$*+?|.#x5b#x5d] |
+    '\' ('[' | ']' | '(' | ')' | '{' | '}' | '^' | '$' | '*' | '+' | '?' | '.' | '|' | '\')
+
+INTEGER ::= [0-9]+
