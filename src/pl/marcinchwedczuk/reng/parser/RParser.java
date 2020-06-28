@@ -170,9 +170,13 @@ public class RParser {
     private long Ginteger() {
         int startPos = currToken().pos;
         char c = currToken().c;
-        if (!Character.isDigit(c))
+        if (!Character.isDigit(c)) {
+            String invalid = (currToken().type != RTokenType.CHARACTER)
+                    ? currToken().type.toString()
+                    : "'" + c + "'";
             throw new RParseException(startPos,
-                    "Expected a digit but got '" + c + "'.");
+                    "Expected a digit but got " + invalid + ".");
+        }
 
         consume(RTokenType.CHARACTER);
         String number = Character.toString(c);
@@ -224,6 +228,7 @@ public class RParser {
     }
 
     private RAst Ggroup() {
+        int groupStart = currToken().pos;
         consume(RTokenType.LGROUP);
 
         // Check if group starts with ^ e.g. [^0-9]
@@ -239,7 +244,7 @@ public class RParser {
             if (lookahead(0, RTokenType.RGROUP)) {
                 consume(RTokenType.RGROUP);
                 if (chars.size() == 0) {
-                    throw new RParseException(currToken().pos,
+                    throw new RParseException(groupStart,
                             "Empty groups are not supported, " +
                                     "use non empty group like '[abc]'.");
                 }

@@ -104,7 +104,8 @@ public class RParserTest {
         assertEquals("...", ast.toString());
     }
 
-    @Test public void parse_smoke_test1() {
+    @Test public void parse_double_literal() {
+        String r = "^[-+]?(([0-9]+(.[0-9]*)?)|(.[0-9]+))([Ee]-?[0-9]+)?$";
         RAst ast = RParser.parse("^(foo|bar)$");
 
         assertEquals(ast.toString(), "^(foo|bar)$");
