@@ -5,7 +5,7 @@ public enum RTokenType {
     LPAREN,
     RPAREN,
 
-    // Groups e.g. [0-9]
+    // Character Groups e.g. [0-9]
     LGROUP,
     RGROUP,
 
@@ -13,12 +13,14 @@ public enum RTokenType {
     LRANGE,
     RRANGE,
 
+    // Metacharacters: . * + ? |
     MATCH_ANY,
     STAR,
     PLUS,
     QMARK,
     ALTERNATIVE,
 
+    // Anchors: ^ and $
     AT_BEGINNING,
     AT_END,
 

@@ -113,12 +113,12 @@ public class RParser {
     private RAst Gconcat() {
         List<RAst> exprs = new ArrayList<>();
 
-        exprs.add(Gmultiplicative());
+        exprs.add(Grepeat());
 
         while (!lookahead(0, RTokenType.ALTERNATIVE) &&
                 !lookahead(0, RTokenType.RPAREN) &&
                 !lookahead(0, RTokenType.EOF)) {
-            exprs.add(Gmultiplicative());
+            exprs.add(Grepeat());
         }
 
         return exprs.size() == 1
@@ -126,7 +126,7 @@ public class RParser {
                 : RAst.concat(exprs.toArray(new RAst[0]));
     }
 
-    private RAst Gmultiplicative() {
+    private RAst Grepeat() {
         RAst term = Gterm();
 
         while (lookahead(0, RTokenType.STAR) ||
@@ -139,11 +139,12 @@ public class RParser {
                 term = RAst.star(term);
             } else if (lookahead(0, RTokenType.PLUS)) {
                 consume(RTokenType.PLUS);
-                term = RAst.repeat(term, 1, RAst.UNBOUND);
+                term = RAst.plus(term);
             } else if (lookahead(0, RTokenType.QMARK)) {
                 consume(RTokenType.QMARK);
                 term = RAst.repeat(term, 0, 1);
             } else {
+                // Parse repeat range e.g. '{1,2}' or '{3}'
                 term = Grange(term);
             }
         }
@@ -194,9 +195,9 @@ public class RParser {
         // Term:
         // - Character
         // - Group
-        // - Anchor (^ and $)
-        // - Match any
-        // - ( regex )
+        // - Anchor - ^ and $
+        // - Match any - .
+        // - Parentheses - ( regex )
 
         if (lookahead(0, RTokenType.AT_BEGINNING)) {
             consume(RTokenType.AT_BEGINNING);
@@ -208,6 +209,9 @@ public class RParser {
             return Ggroup();
         } else if (lookahead(0, RTokenType.CHARACTER)) {
             return RAst.group(Gchar());
+        } else if (lookahead(0, RTokenType.MATCH_ANY)) {
+            consume(RTokenType.MATCH_ANY);
+            return RAst.any();
         } else if (lookahead(0, RTokenType.LPAREN)) {
             consume(RTokenType.LPAREN);
             RAst tmp = Gregex();
@@ -222,6 +226,7 @@ public class RParser {
     private RAst Ggroup() {
         consume(RTokenType.LGROUP);
 
+        // Check if group starts with ^ e.g. [^0-9]
         boolean negated = consumeIfPresent(RTokenType.AT_BEGINNING);
         CharList chars = new CharList();
 
@@ -261,7 +266,10 @@ public class RParser {
         consume('-');
         RToken tTo = consume(RTokenType.CHARACTER);
 
-        // TODO: Add validation e.g. tTo < tFrom
+        if (tFrom.c > tTo.c) {
+            // Empty range like 9-0
+            return new char[0];
+        }
 
         // TODO: Intro more efficient AST type or assume ASCII input
         char[] chars = new char[tTo.c - tFrom.c + 1];

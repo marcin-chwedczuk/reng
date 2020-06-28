@@ -9,34 +9,41 @@ import static org.junit.Assert.assertEquals;
 
 public class ContinuationsTest {
 
-    private interface Cont0<R> {
+    @FunctionalInterface
+    private interface Cont<R> {
         void apply(R result);
     }
 
-    private static void add(int a, int b, Cont0<Integer> cont) {
+    private static void add(int a, int b, Cont<Integer> cont) {
         cont.apply(a + b);
     }
 
-    private static void multiply(int a, int b, Cont0<Integer> cont) {
+    private static void addLong(long a, long b, Cont<Long> cont) {
+        cont.apply(a + b);
+    }
+
+    private static void multiply(int a, int b, Cont<Integer> cont) {
         cont.apply(a*b);
     }
 
-    private static void eq(int a, int b, Cont0<Boolean> cont) {
+    private static void eq(int a, int b, Cont<Boolean> cont) {
         cont.apply(a == b);
     }
 
-    private static void lt(int a, int b, Cont0<Boolean> cont) {
+    private static void lt(int a, int b, Cont<Boolean> cont) {
         cont.apply(a < b);
     }
 
+    private static void gt(int a, int b, Cont<Boolean> cont) { cont.apply(a > b); }
+
     private static void iff(boolean expr,
-                            Cont0<Boolean> trueBranch,
-                            Cont0<Boolean> falseBranch) {
+                            Cont<Boolean> trueBranch,
+                            Cont<Boolean> falseBranch) {
         if (expr) trueBranch.apply(true);
         else falseBranch.apply(false);
     }
 
-    private static void factorial(int n, Cont0<Integer> cont) {
+    private static void factorial(int n, Cont<Integer> cont) {
         eq(n, 0, isNZero ->
             iff(isNZero,
                     trueArg -> cont.apply(1),
@@ -64,7 +71,7 @@ public class ContinuationsTest {
         return fib1(n-1) + fib1(n-2);
     }
 
-    private static void fib(int n, Cont0<Integer> cont) {
+    private static void fib(int n, Cont<Integer> cont) {
         lt(n, 2, nlt2 ->
                 iff(nlt2,
                         falseArg -> cont.apply(1),
@@ -75,6 +82,29 @@ public class ContinuationsTest {
                                                         add(fnm1, fnm2, cont)))))));
     }
 
+    private static long sum_imperative(int from, int to) {
+        long sum = 0;
+        for (int i = from; i <= to; i++) {
+            sum += i; // naive implementation
+        }
+        return sum;
+    }
+
+    private static long sum_rec(int from, int to) {
+        return (from > to)
+                ? 0
+                : from + sum_rec(from+1, to);
+    }
+
+    private static void sumCC(int from, int to, Cont<Long> cont) {
+        gt(from, to, fromGreaterThanTo ->
+                iff(fromGreaterThanTo,
+                        x -> cont.apply(0L),
+                        x -> add(from, 1, from1 ->
+                                sumCC(from1, to, sumCC1 ->
+                                        addLong(from, sumCC1, cont)))));
+    }
+
     @Test public void fib_works() {
         for (int n = 0; n < 7; n++) {
             AtomicInteger contResult = new AtomicInteger(-1);
@@ -83,5 +113,4 @@ public class ContinuationsTest {
             assertEquals(fib1(n), contResult.get());
         }
     }
-
 }

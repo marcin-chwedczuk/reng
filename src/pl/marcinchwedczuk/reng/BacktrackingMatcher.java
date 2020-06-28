@@ -21,7 +21,7 @@ public class BacktrackingMatcher {
                 return new Match(s, hasMatch, startIndex, endIndex.get());
             }
 
-            // We checked empty string - no match
+            // We are at the end of the input - no match
             if (input.atEnd()) return new Match(s, hasMatch, -1, -1);
 
             // Try to match from next index
@@ -32,7 +32,7 @@ public class BacktrackingMatcher {
     @SuppressWarnings("SimplifiableConditionalExpression")
     public static boolean match(Input input, RAst ast, Cont cont) {
         RAstType type = ast.type;
-        InputMarker m = null;
+        InputPositionMarker m = null;
 
         switch (type) {
             case AT_BEGINNING:
@@ -46,15 +46,14 @@ public class BacktrackingMatcher {
                     : false;
 
             case GROUP:
-                // TODO: Handle empty groups
                 if (input.atEnd()) return false;
                 if (ast.chars.contains(input.current())) {
-                    m = input.mark();
+                    m = input.markPosition();
                     input.advance(1);
                     try {
                         return cont.run();
                     } finally {
-                        input.goTo(m);
+                        input.restorePosition(m);
                     }
                 }
                 return false;
@@ -62,13 +61,13 @@ public class BacktrackingMatcher {
             case INVERTED_GROUP:
                 if (input.atEnd()) return false;
                 if (!ast.chars.contains(input.current())) {
-                    m = input.mark();
+                    m = input.markPosition();
                     input.advance(1);
                     try {
                         return cont.run();
                     }
                     finally {
-                        input.goTo(m);
+                        input.restorePosition(m);
                     }
                 }
                 return false;
@@ -87,15 +86,17 @@ public class BacktrackingMatcher {
     }
 
     private static boolean concatRec(Input input,
-                                  List<RAst> exprs,
-                                  int curr,
-                                  Cont cont) {
-        if (curr == exprs.size()) {
+                                     List<RAst> exprs,
+                                     int currExpr,
+                                     Cont cont) {
+        if (currExpr == exprs.size()) {
             return cont.run();
         }
 
-        return match(input, exprs.get(curr), () ->
-            concatRec(input, exprs, curr + 1, cont)
+        // Match exprs.get(currExpr)
+        return match(input, exprs.get(currExpr), () ->
+            // If it succeeded then match next expression
+            concatRec(input, exprs, currExpr + 1, cont)
         );
     }
 
@@ -111,31 +112,29 @@ public class BacktrackingMatcher {
         );
 
         if (!matched && (matchCount >= repeatAst.repeatMin)) {
-            // r{N} does not match.
-            // Here  we are matching r{N-1}, we are sure it is matching
+            // r{N} did not match.
+            // Here we are matching r{N-1}, we are sure it is matching
             // because this function was called.
             return cont.run();
         }
 
-        // r{N} matched.
+        // r{N} matched?
         return matched;
     }
 
     private static boolean alternativeRec(Input input,
                                           List<RAst> expr,
-                                          int curr,
+                                          int currExpr,
                                           Cont cont) {
-        if (curr == expr.size()) {
+        if (currExpr == expr.size()) {
             // We tried all alternatives but achieved no match.
             return false;
         }
 
-        boolean b = match(input, expr.get(curr), cont);
-        if (!b) {
-            // Let's try next alternative branch
-            return alternativeRec(input, expr, curr+1, cont);
-        }
+        boolean matched = match(input, expr.get(currExpr), cont);
+        if (matched) return true;
 
-        return true;
+        // Let's try next alternative "branch"
+        return alternativeRec(input, expr, currExpr+1, cont);
     }
 }

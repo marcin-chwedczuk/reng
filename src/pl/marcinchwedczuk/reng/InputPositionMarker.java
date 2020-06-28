@@ -1,9 +1,9 @@
 package pl.marcinchwedczuk.reng;
 
-public class InputMarker {
+public class InputPositionMarker {
     final int pos;
 
-    public InputMarker(int pos) {
+    public InputPositionMarker(int pos) {
         this.pos = pos;
     }
 }

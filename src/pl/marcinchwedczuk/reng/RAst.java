@@ -1,6 +1,7 @@
 package pl.marcinchwedczuk.reng;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
@@ -29,7 +30,7 @@ public class RAst {
     }
 
     public RAst(RAstType type,
-                 Set<Character> chars) {
+                Set<Character> chars) {
         this(type,
              chars,
              Collections.emptyList(),
@@ -37,7 +38,7 @@ public class RAst {
     }
 
     public RAst(RAstType type,
-                 List<RAst> exprs) {
+                List<RAst> exprs) {
         this(type,
              Collections.emptySet(),
              exprs,
@@ -72,10 +73,16 @@ public class RAst {
                 break;
 
             case INVERTED_GROUP:
-                tmp = chars.stream()
-                        .sorted()
-                        .map(Object::toString)
-                        .collect(joining("", "[^", "]"));
+                if (chars.isEmpty()) {
+                    // Empty inverted group is used to represent `.` (any)
+                    tmp = ".";
+                }
+                else {
+                    tmp = chars.stream()
+                            .sorted()
+                            .map(Object::toString)
+                            .collect(joining("", "[^", "]"));
+                }
                 break;
 
             case REPEAT:
@@ -137,19 +144,20 @@ public class RAst {
     }
 
     public static RAst group(char... chars) {
-        return new RAst(
-            RAstType.GROUP, toSet(chars));
+        return new RAst(RAstType.GROUP, toSet(chars));
     }
 
     public static RAst invGroup(char... chars) {
-        return new RAst(
-            RAstType.INVERTED_GROUP, toSet(chars));
+        return new RAst(RAstType.INVERTED_GROUP, toSet(chars));
+    }
+
+    public static RAst any() {
+        // We represent . as inverted empty group.
+        return new RAst(RAstType.INVERTED_GROUP, Collections.emptySet());
     }
 
     public static RAst concat(RAst... exprs) {
-        return new RAst(
-            RAstType.CONCAT,
-            Arrays.asList(exprs));
+        return new RAst(RAstType.CONCAT, Arrays.asList(exprs));
     }
 
     public static RAst literal(String s) {
@@ -161,13 +169,15 @@ public class RAst {
     }
 
     public static RAst alternative(RAst... expr) {
-        return new RAst(
-            RAstType.ALTERNATIVE,
-            Arrays.asList(expr));
+        return new RAst(RAstType.ALTERNATIVE, Arrays.asList(expr));
     }
 
     public static RAst star(RAst expr) {
-        return repeat(expr, 0, Long.MAX_VALUE);
+        return repeat(expr, 0, UNBOUND);
+    }
+
+    public static RAst plus(RAst expr) {
+        return repeat(expr, 1, UNBOUND);
     }
 
     public static RAst repeat(RAst expr, long min, long max) {
@@ -194,6 +204,8 @@ public class RAst {
                 -1, -1);
     }
 
+    /** Adds ^ and $ anchors to the regex r.
+     */
     public static RAst fullMatch(RAst r) {
         return RAst.concat(
                 atBeginning(),

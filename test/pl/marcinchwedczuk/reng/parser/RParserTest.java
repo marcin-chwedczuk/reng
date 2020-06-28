@@ -99,7 +99,12 @@ public class RParserTest {
         assertEquals("a{2,5}", ast.toString());
     }
 
-    @Test public void parse_smoke() {
+    @Test public void parse_any() {
+        RAst ast = RParser.parse("...");
+        assertEquals("...", ast.toString());
+    }
+
+    @Test public void parse_smoke_test1() {
         RAst ast = RParser.parse("^(foo|bar)$");
 
         assertEquals(ast.toString(), "^(foo|bar)$");

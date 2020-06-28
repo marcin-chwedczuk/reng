@@ -7,10 +7,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class Continuations1Test {
-    private interface Cont0<R> {
+    @FunctionalInterface
+    private interface Cont<R> {
         Thunk apply(R result);
     }
 
+    @FunctionalInterface
     private interface Thunk {
         Thunk run();
     }
@@ -21,47 +23,47 @@ public class Continuations1Test {
         }
     }
 
-    private static <T> Cont0<T> endCall(Consumer<T> call) {
+    private static <T> Cont<T> endCall(Consumer<T> call) {
         return r -> {
             call.accept(r);
             return null;
         };
     }
 
-    private static Thunk add(int a, int b, Cont0<Integer> cont) {
+    private static Thunk add(int a, int b, Cont<Integer> cont) {
         int sum = a + b;
         return () -> cont.apply(sum);
     }
 
-    private static Thunk add(int a, int b, int c, Cont0<Integer> cont) {
+    private static Thunk add(int a, int b, int c, Cont<Integer> cont) {
         return add(a, b, sum ->
                 add(sum, c, cont));
     }
 
-    private static Thunk multiply(int a, int b, Cont0<Integer> cont) {
+    private static Thunk multiply(int a, int b, Cont<Integer> cont) {
         int product = a * b;
         return () -> cont.apply(product);
     }
 
-    private static Thunk eq(int a, int b, Cont0<Boolean> cont) {
+    private static Thunk eq(int a, int b, Cont<Boolean> cont) {
         boolean result = (a == b);
         return () -> cont.apply(result);
     }
 
-    private static Thunk lt(int a, int b, Cont0<Boolean> cont) {
+    private static Thunk lt(int a, int b, Cont<Boolean> cont) {
         boolean result  = (a < b);
         return () -> cont.apply(result);
     }
 
     private static Thunk iff(boolean expr,
-                             Cont0<Boolean> trueBranch,
-                             Cont0<Boolean> falseBranch) {
+                             Cont<Boolean> trueBranch,
+                             Cont<Boolean> falseBranch) {
         return (expr)
                 ? () -> trueBranch.apply(true)
                 : () -> falseBranch.apply(false);
     }
 
-    private static Thunk factorial(int n, Cont0<Integer> cont) {
+    private static Thunk factorial(int n, Cont<Integer> cont) {
         return eq(n, 0, isNZero ->
                 iff(isNZero,
                         trueArg -> cont.apply(1),
