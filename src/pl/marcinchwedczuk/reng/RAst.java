@@ -1,7 +1,6 @@
 package pl.marcinchwedczuk.reng;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
@@ -72,7 +71,7 @@ public class RAst {
                 }
                 break;
 
-            case INVERTED_GROUP:
+            case NEGATED_GROUP:
                 if (chars.isEmpty()) {
                     // Empty inverted group is used to represent `.` (any)
                     tmp = ".";
@@ -148,12 +147,12 @@ public class RAst {
     }
 
     public static RAst invGroup(char... chars) {
-        return new RAst(RAstType.INVERTED_GROUP, toSet(chars));
+        return new RAst(RAstType.NEGATED_GROUP, toSet(chars));
     }
 
     public static RAst any() {
         // We represent . as inverted empty group.
-        return new RAst(RAstType.INVERTED_GROUP, Collections.emptySet());
+        return new RAst(RAstType.NEGATED_GROUP, Collections.emptySet());
     }
 
     public static RAst concat(RAst... exprs) {

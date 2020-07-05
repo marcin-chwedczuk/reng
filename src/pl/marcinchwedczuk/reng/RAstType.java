@@ -13,7 +13,7 @@ public enum RAstType {
     GROUP(100),
 
     // Regex: [^abc]
-    INVERTED_GROUP(100),
+    NEGATED_GROUP(100),
 
     // Match single expression zero or more times.
     // Greedy by default.

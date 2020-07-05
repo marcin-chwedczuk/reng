@@ -1,5 +1,6 @@
 package pl.marcinchwedczuk.reng;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import pl.marcinchwedczuk.reng.parser.RParser;
 
@@ -80,6 +81,16 @@ public class SmokeTests {
         assertNotMatches("20000302", ast);
         assertNotMatches("2000/03/02", ast);
         assertNotMatches("2000-fo-02", ast);
+    }
+
+    @Test @Ignore public void preformance_volnurability() {
+        // Takes about 10 seconds. Adding another 'a' to the
+        // input will at least double that time.
+        String r = "(a+)*c";
+        String input = "aaaaaaaaaaaaaaaaaaaaaaaaaaaab";
+
+        RAst ast = RParser.parse(r);
+        assertFullMatch(input, ast);
     }
 
     private static void assertFullMatch(String input, RAst regex) {

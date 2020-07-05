@@ -1,4 +1,4 @@
-// You can view this on: https://www.bottlecaps.de/rr/ui
+// EBNF to Railroad Diagrams: https://www.bottlecaps.de/rr/ui
 
 regex ::= alternative
 

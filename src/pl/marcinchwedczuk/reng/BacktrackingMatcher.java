@@ -58,7 +58,7 @@ public class BacktrackingMatcher {
                 }
                 return false;
 
-            case INVERTED_GROUP:
+            case NEGATED_GROUP:
                 if (input.atEnd()) return false;
                 if (!ast.chars.contains(input.current())) {
                     m = input.markPosition();
