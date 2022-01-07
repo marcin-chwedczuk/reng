@@ -228,6 +228,20 @@ public class BacktrackingMatcherTest {
         Assert.assertEquals("bb", m.matched());
     }
 
+    @Test public void bug_repeatedly_match_empty_string_2() {
+        // regex (a*|b)+
+        String input = "bbc";
+        RAst r = RAst.plus(
+                RAst.alternative(
+                        RAst.star(RAst.group('a')),
+                        RAst.group('b')
+                ));
+
+        Match m = BacktrackingMatcher.match(input, r);
+        // Here a* matches empty string at the beginning of the input
+        Assert.assertEquals("", m.matched());
+    }
+
     @Test public void bug_astar_matches_anything() {
         // regex (b|a*)+
         String input = "bbc";
