@@ -215,6 +215,28 @@ public class BacktrackingMatcherTest {
         Assert.assertEquals("aaaaa", m.matched());
     }
 
+    @Test public void bug_repeatedly_match_empty_string() {
+        // regex (b|a*)+
+        String input = "bbc";
+        RAst r = RAst.plus(
+                RAst.alternative(
+                    RAst.group('b'),
+                    RAst.star(RAst.group('a'))
+                    ));
+
+        Match m = BacktrackingMatcher.match(input, r);
+        Assert.assertEquals("bb", m.matched());
+    }
+
+    @Test public void bug_astar_matches_anything() {
+        // regex (b|a*)+
+        String input = "bbc";
+        RAst r = RAst.star(RAst.group('a'));
+
+        Match m = BacktrackingMatcher.match(input, r);
+        Assert.assertEquals("", m.matched());
+    }
+
     private static void assertMatches(String input, RAst regex) {
         Match m = BacktrackingMatcher.match(input, regex);
 

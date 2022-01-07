@@ -104,12 +104,21 @@ public class BacktrackingMatcher {
                                      RAst repeatAst,
                                      long matchCount,
                                      Cont cont) {
-        if (matchCount > repeatAst.repeatMax)
-            return false;
+        InputPositionMarker positionBeforeMatch = input.markPosition();
 
-        boolean matched = match(input, repeatAst.headExpr(), () ->
-            repeatRec(input, repeatAst, matchCount+1, cont)
-        );
+        boolean matched = match(input, repeatAst.headExpr(), () -> {
+            if ((matchCount+1) > repeatAst.repeatMax)
+                return false;
+
+            // We must be careful when matching empty string inside * or + operator.
+            // If the matched input is "" we can have as many repeats as we want.
+            InputPositionMarker positionAfterMatch = input.markPosition();
+            if (positionAfterMatch.equals(positionBeforeMatch)) {
+                return cont.run();
+            } else {
+                return repeatRec(input, repeatAst, matchCount + 1, cont);
+            }
+        });
 
         if (!matched && (matchCount >= repeatAst.repeatMin)) {
             // r{N} did not match.
