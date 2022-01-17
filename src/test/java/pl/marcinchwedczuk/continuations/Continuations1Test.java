@@ -1,10 +1,11 @@
 package pl.marcinchwedczuk.continuations;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Continuations1Test {
     @FunctionalInterface
@@ -72,11 +73,12 @@ public class Continuations1Test {
                                         multiply(n, fnm1, cont)))));
     }
 
-    @Test public void ramping_works() {
+    @Test
+    public void ramping_works() {
         AtomicInteger res = new AtomicInteger(-1);
         trampoline(factorial(4, endCall(res::set)));
 
-        Assert.assertEquals(24, res.get());
+        assertEquals(24, res.get());
 
         // No stack overflow
         trampoline(factorial(400000, endCall(res::set)));

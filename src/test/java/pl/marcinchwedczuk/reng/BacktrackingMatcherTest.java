@@ -1,13 +1,12 @@
 package pl.marcinchwedczuk.reng;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BacktrackingMatcherTest {
-    @Test public void matches_group() {
+    @Test
+    public void matches_group() {
         RAst rAbc = RAst.group('a', 'b', 'c');
 
         assertMatches("a", rAbc);
@@ -212,7 +211,7 @@ public class BacktrackingMatcherTest {
 
         Match m = BacktrackingMatcher.match(input, r);
 
-        Assert.assertEquals("aaaaa", m.matched());
+        assertEquals("aaaaa", m.matched());
     }
 
     @Test public void bug_repeatedly_match_empty_string() {
@@ -225,7 +224,7 @@ public class BacktrackingMatcherTest {
                     ));
 
         Match m = BacktrackingMatcher.match(input, r);
-        Assert.assertEquals("bb", m.matched());
+        assertEquals("bb", m.matched());
     }
 
     @Test public void bug_repeatedly_match_empty_string_2() {
@@ -239,7 +238,7 @@ public class BacktrackingMatcherTest {
 
         Match m = BacktrackingMatcher.match(input, r);
         // Here a* matches empty string at the beginning of the input
-        Assert.assertEquals("", m.matched());
+        assertEquals("", m.matched());
     }
 
     @Test public void bug_astar_matches_anything() {
@@ -248,22 +247,20 @@ public class BacktrackingMatcherTest {
         RAst r = RAst.star(RAst.group('a'));
 
         Match m = BacktrackingMatcher.match(input, r);
-        Assert.assertEquals("", m.matched());
+        assertEquals("", m.matched());
     }
 
     private static void assertMatches(String input, RAst regex) {
         Match m = BacktrackingMatcher.match(input, regex);
 
-        assertTrue(
-            "Regex " + regex + " should match '" + input + "'.",
-            m.hasMatch);
+        assertTrue(m.hasMatch,
+            "Regex " + regex + " should match '" + input + "'.");
     }
 
     private static void assertNotMatches(String input, RAst regex) {
         Match m = BacktrackingMatcher.match(input, regex);
 
-        assertFalse(
-                "Regex " + regex + " should NOT match '" + input + "'.",
-                m.hasMatch);
+        assertFalse(m.hasMatch,
+                "Regex " + regex + " should NOT match '" + input + "'.");
     }
 }

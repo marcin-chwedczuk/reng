@@ -1,13 +1,13 @@
 package pl.marcinchwedczuk.reng.parser;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import pl.marcinchwedczuk.reng.RAst;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RParserTest {
-    @Test public void parse_single_letter() {
+    @Test
+    public void parse_single_letter() {
         RAst ast = RParser.parse("a");
         assertEquals("a", ast.toString());
     }

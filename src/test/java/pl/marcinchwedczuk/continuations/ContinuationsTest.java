@@ -1,11 +1,11 @@
 package pl.marcinchwedczuk.continuations;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ContinuationsTest {
 
@@ -57,7 +57,8 @@ public class ContinuationsTest {
         return factorial1(n-1)*n;
     }
 
-    @Test public void factorial_cont() {
+    @Test
+    public void factorial_cont() {
         for (int n = 0; n < 7; n++) {
             AtomicLong contResult = new AtomicLong(-1);
             factorial(n, contResult::set);

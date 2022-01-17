@@ -1,14 +1,11 @@
 package pl.marcinchwedczuk.reng;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.Assert.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PuzzleTest {
 
@@ -83,7 +80,8 @@ public class PuzzleTest {
         return false;
     }
 
-    @Test public void puzzle_example() {
+    @Test
+    public void puzzle_example() {
         char[][] board = {
             { 'C', '?', 'R' },
             { 'H', '?', '?' },

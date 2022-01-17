@@ -1,10 +1,11 @@
 package pl.marcinchwedczuk.reng;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import pl.marcinchwedczuk.reng.parser.RParser;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SmokeTests {
     @Test
@@ -83,7 +84,7 @@ public class SmokeTests {
         assertNotMatches("2000-fo-02", ast);
     }
 
-    @Test @Ignore public void preformance_volnurability() {
+    @Test @Disabled public void preformance_volnurability() {
         // Takes about 10 seconds. Adding another 'a' to the
         // input will at least double that time.
         String r = "(a+)*c";
@@ -96,16 +97,14 @@ public class SmokeTests {
     private static void assertFullMatch(String input, RAst regex) {
         Match m = BacktrackingMatcher.match(input, regex);
 
-        assertTrue(
-                "Regex " + regex + " should match '" + input + "'.",
-                m.hasMatch && m.matched().equals(input));
+        assertTrue(m.hasMatch && m.matched().equals(input),
+                "Regex " + regex + " should match '" + input + "'.");
     }
 
     private static void assertNotMatches(String input, RAst regex) {
         Match m = BacktrackingMatcher.match(input, regex);
 
-        assertFalse(
-                "Regex " + regex + " should NOT match '" + input + "'.",
-                m.hasMatch);
+        assertFalse(m.hasMatch,
+                "Regex " + regex + " should NOT match '" + input + "'.");
     }
 }

@@ -1,15 +1,15 @@
 package pl.marcinchwedczuk.reng.parser;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RLexerTest {
-    @Test public void splits_input_to_tokens() {
+    @Test
+    public void splits_input_to_tokens() {
         List<RToken> tokens = new RLexer("^\\^\\n(a)").split();
 
         List<RToken> expected = Arrays.asList(
@@ -22,6 +22,6 @@ public class RLexerTest {
                 new RToken(RTokenType.EOF, '\0', 8)
         );
 
-        Assert.assertEquals(expected, tokens);
+        assertEquals(expected, tokens);
     }
 }
