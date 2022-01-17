@@ -14,5 +14,5 @@ You can change that by editing lines:
 <!-- Java version -->
 <maven.compiler.release>17</maven.compiler.release>
 ```
-in `pom.xml` file. Project should compile under older JDK versions (like 11 without any problems).
+in `pom.xml` file. Project should compile under older JDK versions (like 11 or even 8) without any problems.
 
